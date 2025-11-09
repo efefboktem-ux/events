@@ -1,0 +1,36 @@
+// events.c
+#include "partyplanner64.h"
+
+// --- GLOBAL VARIABLES ---
+int Tide_Status = 0; 
+int Tide_Turns_Remaining = 0;
+
+// The Space IDs that form the path link for the gate/bridge.
+// IMPORTANT: REPLACE 17 AND 18 WITH THE ACTUAL SPACE IDs CONNECTED BY YOUR GATE.
+#define GATE_SPACE_A 17
+#define GATE_SPACE_B 18
+
+
+// --- 1. HAPPENING SPACE LOGIC (Triggered by Space ID 16) ---
+void H_HighTide_Trigger_Func(int player_index) {
+    if (Tide_Status == 0) {
+        Tide_Status = 1;
+        Tide_Turns_Remaining = 3;
+        SDK_DisablePath(GATE_SPACE_A, GATE_SPACE_B); 
+        SDK_DisplayMessage("Giant wave! Shortcut BLOCKED for 3 turns!", player_index);
+    }
+}
+
+
+// --- 2. GLOBAL TIMER LOGIC (Triggered every turn) ---
+void Global_Tide_Timer_Check() {
+    if (Tide_Status == 1) {
+        Tide_Turns_Remaining--;
+
+        if (Tide_Turns_Remaining <= 0) {
+            Tide_Status = 0; 
+            SDK_EnablePath(GATE_SPACE_A, GATE_SPACE_B);
+            // SDK_DisplayGlobalMessage("The tide has receded. The shortcut is open!");
+        }
+    }
+}
