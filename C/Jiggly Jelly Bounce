@@ -1,0 +1,75 @@
+; NAME: Jiggly Jelly Bounce
+; GAMES: MP2_USA
+; EXECUTION: Process
+; PARAM: Boolean|show_timer
+; PARAM: Number|timer
+; PARAM: Space|jelly
+; PARAM: Space|step_to_jelly
+; PARAM: Number|sprite_number
+
+/* --- Data Section --- */
+
+JellyQuestion:
+.asciiz "Would you like to go to\nJiggly Jelly Bounce?\n\n{Choice:0}Yes\n{Choice:1}No"
+
+/* --- Code Section --- */
+
+
+/* 1. YES/NO SELECTION */
+JAL 0x8002C594         /* Show Text with Choice Function */
+NOP
+
+/* 2. IF YES: PLAY ANIM. IF NO: CONTINUE */
+/* v0 is 0 for Yes, 1 for No */
+BNE v0, r0, EndEvent   
+NOP
+
+/* --- Start of "Yes" Path --- */
+
+/* Play 'Boing' Sound Effect */
+LI a0, 0x0031      
+JAL 0x80028110     
+NOP                
+
+/* Trigger Jelly Animation (Index 4) */
+LUI t0, 0x800F     
+ADDIU t0, t0, 0x0004 
+LI t1, 1           
+SW t1, 0x0054(t0)
+/* --- Animation Process Loop --- */
+
+Frame001: JAL 0x80028780 ; Pause for Frame 001 (1.26s)
+Frame002: JAL 0x80028780 ; Pause for Frame 002 (0.92s)
+Frame003: JAL 0x80028780 ; Pause for Frame 003 (1.55s)
+Frame004: JAL 0x80028780 ; Pause for Frame 004 (1.28s)
+Frame005: JAL 0x80028780 ; Pause for Frame 005 (1.29s)
+/* ... repeat for all frames ... */
+Frame121: JAL 0x80028780 ; Pause for Frame 121 (0.70s)
+
+/* --- After Animation completes, move to Reward --- */
+JAL 0x8002B490         /* Wait for A Button */
+NOP
+
+/* 3. SHOW TIMER (Pause for 60 frames / 1 second) */
+LI a0, 60              
+JAL 0x80028780         
+NOP
+
+/* 4. A BUTTON (Wait for player input to continue) */
+JAL 0x8002B490         /* Function that waits for A Button press */
+NOP
+JAL 2/4
+JAL 0x14
+
+/* 5. COIN REWARD (Give 10 Coins) */
+/* a0 = player index (0-3), a1 = coin amount */
+LUI t2, 0x800F
+LW a0, 0x0000(t2)      /* Loads current player turn index */
+LI a1, 10              /* Number of coins to give */
+JAL 0x8002D3C0         /* Standard Give Coins Function */
+NOP
+
+EndEvent:
+JR ra              
+NOP
+
